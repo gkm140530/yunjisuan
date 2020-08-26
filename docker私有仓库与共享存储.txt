@@ -1,0 +1,81 @@
+1、私有仓库搭建
+   配置 yum 源
+   安装 yum install docker-distribution
+   设置开机自启动，并启动服务 docker-distribution
+   验证服务:curl http://192.168.1.100:5000/v2/_catalog
+
+2、私有仓库地址告诉所有docker机器
+   停止所有容器
+   配置 /etc/sysconfig/docker
+   ADD_REGISTRY='--add-registry 192.168.1.100:5000'
+   INSECURE_REGISTRY='--insecure-registry 192.168.1.100:5000'（非加密方式）
+   重启服务 systemctl restart docker
+
+3、上传镜像
+   打标签: docker tag myos:latest 192.168.1.100:5000/myos:latest
+
+
+
+   上传镜像: docker push 192.168.1.100:5000/myos:latest
+   验证: curl http://192.168.1.100:5000/v2/_catalog(查看镜像)
+   标签：curl http://192.168.1.100:5000/v2/myos/tags/list （查看标签）
+
+4、使用仓库镜像启动容器
+   docker run -it 192.168.1.100:5000/myos:latest
+
+
+docker NFS共享存储
+
+ 1. yum -y install nfs-utils (NFS共享服务器)
+     mkdir /var/webroot
+     chmod 777 /var/webroot/
+     vim /etc/exports
+     systemctl start nfs
+
+ 2. docker1：  showmount -e 192.168.1.100 （启动nginx）
+     yum -y install nfs-utils
+     mount -t nfs 192.168.1.100:/var/webroot /mnt/
+     docker run -itd -v /mnt:/usr/share/nginx/html docker.io/nginx
+    
+    docker2：（启动Apache）
+     yum -y install nfs-utils
+     mount -t nfs 192.168.1.100:/var/webroot /mnt/       
+     docker run -itd -v /mnt:/var/www/html myos:httpd
+
+ 3.验证：curl -i http://172.17.0.2/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

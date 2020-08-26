@@ -1,0 +1,118 @@
+docker images  查看本地镜像
+docker search  查找镜像
+docker pull    下载镜像
+
+唯一镜像 == 名称 + 标签 == 唯一的镜像id
+            文件名 + 路径
+
+docker save docker.io/busybox:latest -o busybox.tar  备份镜像
+
+docker load -i busybox.tar  恢复镜像
+
+docker rmi     删除镜像
+
+docker tag     修改镜像名称和标签
+
+docker history 查看镜像制作历史
+
+docker inspect 查看镜像底层信息
+docker inspect 容器ID   查看容器信息
+
+docker ps      开启另一个终端（查看当前正在运行的容器）
+docker ps -a   查看所有容器
+docker ps -q   查案正在运行的容器ID
+
+echo $$        进程PID
+
+docker run -itd 名字+标签 运行容器 d后台运行 启动命令/bin/bash(容器内命令)
+docker exec -it 容器ID /bin/bash  进入容器
+docker run -v /data:/data -it docker.io/centos  bash 将真实机目录挂载到容器中提供持久化存储
+
+docker attach 容器ID  直接连的上帝进程（可以用来拍错） Ctrl+p Ctrl+q（退出上帝还在）
+
+docker star 容器ID   开启已经存在的容器
+docker stop 容器ID   关闭容器
+docker restart 容器ID   重启容器
+
+docker top 容器ID     查看容器正在运行的服务
+echo $$    查看进程PID号
+
+docker cp 文件名  容器ID：路径    拷贝文件到容器
+
+docker commit 容器ID 新镜像名：标签      制作镜像（盖楼）
+
+
+
+Dockerfile语法格式（无先后顺续）
+
+- FRON（from）：基础镜像
+- MAINTAINER（maintainer）：镜像创建者信息
+- EXPOSE（expose）：开放的端口
+- ENV：设置变量
+- ADD：复制文件到镜像（可以自动解包）
+- RUN：制作镜像时执行的命令，可以多个
+- WORKDIR（workdir）：定义容器默认工作目录 相当于cd
+- CMD:容器启动时执行的命令，仅可以有一条CMD 格式：CMD ["/bin/ls","-l","-a"]
+
+流程：mkdir build；cd build
+      vim Dockerfile
+      docker build -t 新镜像名称 Dockerfile
+
+docker网络拓扑
+
+docker network list 查看docker创建的网络模型
+docker network create --subnet=10.10.10.0/24 docker1  新建docker网络模型（创建网桥）
+docker run -itd --network=docker1 myos：latest 使用自定义网桥启动容器
+
+客户端访问容器内资源：可以把宿主机变成对应服务
+
+- p 参数把容器端口和宿主机端口绑定 -p 宿主机端口：容器端口
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+gkaimin140530
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

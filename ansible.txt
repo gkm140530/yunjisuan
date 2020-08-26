@@ -1,0 +1,153 @@
+absible 主机集合 -m 模块名称  -a 模块参数
+        -i inventory文件路径，或可执行脚本
+        -k 使用交互式登录密码  -e 定义变量
+        -v 显示详细信息
+ansible all --list-hosts  列出要执行的主机
+ansible all -m ping   批量检测主机
+ansible-doc -l |wc -l  查看一共多少模块
+------------------------------------------------------------
+修改配置文件 vim /etc/ansible/ansible.cfg
+        inventory      = hostlist
+        host_key_checking = False
+
+vim hostlist\
+
+\10454
+
+[web]
+web[1:2]
+
+[db]
+db1 ansible_ssh_port=222  ssh端口修改 222
+db2
+[db:vars]
+ansible_ssh_port=222
+
+[other]
+cache
+
+[app:children]   子组定义
+web
+db
+
+自定义分组：新建文件夹，进入文件：vim ansible.cfg
+                                  inventory      = hostlist
+                                  host_key_checking = False
+                           vim hostlit
+                            ....
+-----------------------------------------------------------------
+ansible模块
+
+ansible-doc -l 列出所有模块
+ansible-doc  modulename 查看所有帮助
+
+1. ping模块  测试网络连通性，ping模块没有参数
+ansible all -m ping  检测的时ssh的连通性
+-----------------------------------------------------------------
+2. command模块 远程命令执行 默认模块 不能执行 < > | & 不能解析系统变量   ansible web -m command -a 'uptime‘
+------------------------------------------------------------------
+3. shell模块  用法基本和command一样，区别是shell模块是通过/bin/bash进行执行命令。可以执行任意命令，不能执行交互式命令：vim top等   ansible all -m shell -a ’uptime‘ 不是幂等不能用shell
+------------------------------------------------------------------
+4. scrip模块 命令太复杂，在本地写脚本，然后使用script模块批量执行
+ ansible web -m script -a “./user.sh” user.sh是脚本
+------------------------------------------------------------------
+5. yum 模块  name：要进行操作的软件的名称 多个包用逗号隔开
+            state：动作（installed，removeed）
+ ansible db -m yum -a ’name=“mariadb-server” state=installed‘
+------------------------------------------------------------------
+6. service模块  name：必选项，服务名称
+  起服务        enabled：是否开机启动yes|no
+             sleep：执行restarted，会在stop和start之间沉睡几秒钟
+             state：对当前服务执行启动，停止，重启，重新加载等操作                        （started，stoped，restarted，reloaded）
+------------------------------------------------------------------
+7.copy模块  复制文件到远程主机 src：源文件  dest：目标文件，必选项
+
+          backup：覆盖前先备份原文件，备份文件包含时间信息 yes|no
+          force：若目标主机包含该文件，但内容不同，如果设置为yes，则强制覆盖，设为no，则只有当目标主机的目标位置不存在该文件时才复制，默认为yes
+
+ template模块与copy模块类似，但是可以调用变量
+------------------------------------------------------------------
+8. lineinfile模块 类似sed的一种行编辑替换模式
+          path 目标文件  regexp 正则表达式（要求精确），要改的地方
+          line 最终修改的结果（需要把整行写下来）
+ ansible db -m lineinfile -a 'path=/etc/my.cnf regexp="^binlog-    fromat" line="binlog-fromat = row"'
+------------------------------------------------------------------
+9. replace模块 类似sed   path 目标文件 regexp 正则表达式,要改的行
+                       replace 替换后的结果（只写匹配到的内容）
+ ansible db -m replace -a 'path=/etc/my.cnf regexp="= row$"    replace="= mixed"'
+------------------------------------------------------------------
+10. setup模块 用于获取主机信息 ansible cache -m setup
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    

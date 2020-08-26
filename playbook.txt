@@ -1,0 +1,156 @@
+JSON:对象表示法 分隔符限于单引号，（），[] , {} , : , 逗号
+     语法规则：数据在名称/值对中
+               数据由逗号分隔
+               大括号保存键值对 小括号保存数组  
+    数组：["a1" , "a2" , "a3"]   键值对 key：value
+
+1. 数组嵌套键值对 ["a1" , key:value , "a3" ]
+2. 数组中嵌套数组 ["a1" , ["b1" , "b2"] , "a3"]
+3. 键值对嵌套数组 key：["a1" , "a2" , "a3"]
+4. 键值对嵌套键值对 key：{ key1:value1 , k2:v2 }
+
+-------------------------------------------------------------
+YAML：是一个可读性高，用来表达数据序列的格式
+      基础语法：1. 结构通过空格来表示
+                2. 数组使用 -（空格） 来表示，   后边必须跟空格
+                3. 键值对使用 :（空格） 来表示
+                4. 使用一个固定的缩进风格表示数据层级结构关系
+                5. 一般每个缩进级别由两个以上空格组成
+                6. #表示注释  
+       注意：不要使用tab键 同一层级缩进必须对齐
+json：["a1","a2","a3"]
+yaml:
+      - "a1"
+      - "a2"
+      - "a3"
+--------------------------------------------------------------
+Jinja2模板基本用法：
+      1. 模板表达式都是包含在分隔符“{{  }}”内的
+      2. 控制语句都是包含在分隔符“{%  %}”内的
+      3. 模板支持注释，都是包含在分隔符“{#  #}”内，支持块注释
+   调用变量  {{varname}}
+   计算  {{2+3}}    判断 {{1 in [1,2,3]}}
+
+---------------------------------------------------------------
+playbook语法基础
+   构成：1. hosts：定义将要执行playbook的远程主机
+         2. vars：定义playbook运行时需要使用的变量
+         3. tasks：定义将要在远程主机上执行的任务列表
+         4. handlers：定义task执行完成以后需要调用的任务
+         5. name：提供命令和说明
+ ansible-playbook ping.yml -f 5   -f并发进程数量，默认是5
+---------------------------------------------------------------
+过滤器使用案例：相当于管道
+--- 
+- name: 添加用户
+  hosts: web
+  vars: 
+    username: l4
+  tasks: 
+    - name: 添加用户 "{{ username }}"
+      user: 
+        name: "{{ username }}"
+        group: users
+        password: '{{ "123" |password_hash("sha512") }}'
+---------------------------------------------------------------
+调用变量：1. 内部调用vars：格式：{{ 变量名 }}
+          2. 命令行调用 -e 参数：格式是json或yaml
+  ansible-playbook users.yml -e '{"username":"w5"}'
+
+vim args.yaml
+---
+username： w5
+  ansible-playbook users.yml -e @args.yaml 
+----------------------------------------------------------------
+error 错误处理方法
+   1. ignore_errors:对错误的处理方式
+                    True表示忽略错误继续执行
+                    False表示遇到错误就停止执行 默认False
+----------------------------------------------------------------
+tags：给指定的任务定义一个调用标识  tags: update_index
+  ansible-playbook web.yml -t update_index 只执行带标签的地方
+----------------------------------------------------------------
+handlers 触发器： 和hosts，tasks平级 调用触发器：notify  
+  handlers:
+     - name: reload_httpd     调用：notify: reload_httpd
+----------------------------------------------------------------
+debug模块：可以在运行时输出更为详细的信息，帮助排错  debug：var=result
+ 例子：
+---
+- name: 条件判断测试
+  hosts: web
+  tasks: 
+    - name: 获取系统负载
+      shell: uptime |awk '{printf("%.2f",$(NF-2))}'
+      register: result           调用
+    - name: 停止apache服务
+      service: 
+        name: httpd
+        state: stopped
+      when: result.stdout|float > 0.7     when:条件判断
+    - debug: var=result
+-----------------------------------------------------------------
+with_items是playbook标准循环，可以用于迭代一个列表和字典，通过{{ item }}获取每次迭代的值
+例子：
+--- 
+- name: 添加用户
+  hosts: db
+  tasks: 
+    - name: 添加用户 "{{ item.name }}"
+      user: 
+        name: "{{ item.name }}"
+        group: "{{ item.group}}"
+        password: '{{ item.pass |password_hash("sha512") }}'
+      with_items: 
+        - name: nb
+          group: users
+          pass: "123456"
+        - name: wk
+          group: bin
+          pass: "blanana"
+        - name: dd
+          group: daemon
+          pass: "book"
+        - name: plj
+          group: mysql
+          pass: "123qqq...A"
+        - name: xx
+          group: root
+          pass: "123"
+-----------------------------------------------------------------------
+playbook排错
+  1. 检测语法：ansible-playbook --syntax-check playbook.yaml
+  2. 测试运行：ansible-playbook -C playbook.yaml
+-----------------------------------------------------------------------
+update_cache: yes   -> yum makecache
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

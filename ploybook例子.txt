@@ -1,0 +1,146 @@
+vim http.yml
+--- 
+- name: 安装apache
+  hosts: web
+  tasks: 
+    - name: install the latest version of Apache
+      yum: 
+        name: httpd
+        state: latest
+    - name: Ensure the default Apache port is 8080
+      lineinfile:
+        path: /etc/httpd/conf/httpd.conf
+        regexp: '^Listen '
+        insertafter: '^#Listen '
+        line: 'Listen 8080'
+    - name: Copy file with owner and permissions
+      copy: 
+        src: index.html
+        dest: /var/www/html/index.html
+        owner: apache
+        group: apache
+        mode: '0644'
+    - name: Start service httpd, if not started
+      service: 
+        name: httpd
+        state: started
+        enabled: yes
+---------------------------------------------------------------------
+vim users.yml
+--- 
+- name: 添加用户
+  hosts: db
+  tasks: 
+    - name: 添加用户 "{{ item.name }}"
+      user: 
+        name: "{{ item.name }}"
+        group: "{{ item.group}}"
+        password: '{{ item.pass |password_hash("sha512") }}'
+      with_items: 
+        - name: nb
+          group: users
+          pass: "123456"
+        - name: wk
+          group: bin
+          pass: "blanana"
+        - name: dd
+          group: daemon
+          pass: "book"
+        - name: plj
+          group: mysql
+          pass: "123qqq...A"
+        - name: xx
+          group: root
+          pass: "123"
+-----------------------------------------------------------------------
+vim error.yml
+---
+- name: 错误处理
+  hosts: web
+  tasks: 
+    - name: 创建缓存目录
+      shell: mkdir /tmp/cache
+      ignore_errors: True
+    - name: 重启服务
+      service: 
+        name: httpd
+        state: restarted
+-----------------------------------------------------------------------
+vim load.yml
+---
+- name: 条件判断测试
+  hosts: web
+  tasks: 
+    - name: 获取系统负载
+      shell: uptime |awk '{printf("%.2f",$(NF-2))}'
+      register: result
+    - name: 停止apache服务
+      service: 
+        name: httpd
+        state: stopped
+      when: result.stdout|float > 0.7
+    - debug: var=result
+-----------------------------------------------------------------------
+vim web.yml
+--- 
+- name: 更新web服务器
+  hosts: web
+  tasks: 
+    - name: 更新配置文件
+      tags: update_conf
+      notify: reload_httpd
+      copy: 
+        src: httpd.conf
+        dest: /etc/httpd/conf/httpd.conf
+        owner: root
+        group: root
+        mode: '0644'
+    - name: 更新首页文件
+      tags: update_index
+      copy:
+        src: index.html
+        dest: /var/www/html/index.html
+        owner: apache
+        group: apache
+        mode: '0644'
+  handlers:
+    - name: reload_httpd
+      service: 
+        name: httpd
+        state: reloaded
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
