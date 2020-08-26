@@ -1,0 +1,69 @@
+Tomcat安全性
+
+1） 隐藏版本信息、修改tomcat主配置文件（隐藏版本信息）
+
+curl -I http://192.168.2.100:8080/xx   访问不存在的页面文件，查看头部信息
+修改tomcat配置文件，修改版本信息(在192.168.2.100操作)：
+
+ yum -y install java-1.8.0-openjdk-devel
+ cd /usr/local/tomcat/lib/
+ jar -xf catalina.jar
+ vim org/apache/catalina/util/ServerInfo.properties 
+//根据自己的需要，修改版本信息的内容
+
+再次修改tomcat服务器配置文件，修改版本信息，手动添加server参数
+ vim /usr/local/tomcat/conf/server.xml
+  <Connector port="8080" protocol="HTTP/1.1"
+  connectionTimeout="20000"  redirectPort="8443" server="jacob" />
+
+2）降级启动
+
+默认tomcat使用系统高级管理员账户root启动服务，启动服务尽量使用普通用户
+ su -c /usr/local/tomcat/bin/startup.sh tomcat
+ //使用su命令切换为tomcat账户，以tomcat账户的身份启动tomcat服务
+ chmod +x /etc/rc.local			//该文件为开机启动文件
+ vim /etc/rc.local 			//修改文件，添加如下内容
+ su -c /usr/local/tomcat/bin/startup.sh tomcat
+
+3）删除默认的测试页面
+
+[root@web1 ~]# rm -rf  /usr/local/tomcat/webapps/*
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

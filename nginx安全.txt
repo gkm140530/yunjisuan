@@ -1,0 +1,108 @@
+1. 加固常见服务的安全
+ Nginx安全优化包括：删除不要的模块、修改版本信息、限制并发、拒绝非法请求、防止buffer溢出。
+
+ MySQL安全优化包括：初始化安全脚本、密码安全、备份与还原、数据安全。
+
+ Tomcat安全优化包括：隐藏版本信息、降权启动、删除默认测试页面.
+
+优化Nginx服务的安全配置
+
+1） 删除不需要的模块,使用--without可以禁用某些模块
+2） 修改版本信息，并隐藏具体的版本号
+  vim /usr/local/nginx/conf/nginx.conf
+… …
+http{
+     server_tokens off;	     //在http下面手动添加这么一行
+  vim +48 src/http/ngx_http_header_filter_module.c
+    //注意：vim这条命令必须在nginx-1.12源码包目录下执行！！！！！！
+ 下面是我们修改后的效果：
+ static u_char ngx_http_server_string[] = "Server: Jacob" CRLF;
+ static u_char ngx_http_server_full_string[] = "Server: Jacob" CRLF;
+ static u_char ngx_http_server_build_string[] = "Server: Jacob" CRLF;
+  修改完成后，再去编译安装Nignx，版本信息将不再显示为Nginx，而是Jacob
+
+3） 限制并发量
+DDOS攻击者会发送大量的并发连接，占用服务器资源（包括连接数、带宽等），这样会导致正常用户处于等待或无法访问服务器的状态。
+
+Nginx提供了一个ngx_http_limit_req_module模块，可以有效降低DDOS攻击的风险
+   vim /usr/local/nginx/conf/nginx.conf
+… …
+ http{
+… …
+ limit_req_zone $binary_remote_addr zone=one:10m rate=1r/s;
+	server {
+		listen 80;
+		server_name localhost;
+		limit_req zone=one burst=5;
+
+备注说明：
+ #limit_req_zone语法格式如下：
+ #limit_req_zone key zone=name:size rate=rate;
+ #上面案例中是将客户端IP信息存储名称为one的共享内存，内存空间为10M
+ #1M可以存储8千个IP信息，10M可以存储8万个主机连接的状态，容量可以根据需要 任意调整
+ #每秒中仅接受1个请求，多余的放入漏斗
+ #漏斗超过5个则报错
+
+4） 拒绝非法的请求
+
+ 网站使用的是HTTP协议，该协议中定义了很多方法，可以让用户连接服务器，获得 需要的资源。但实际应用中一般仅需要get和post。(HEAD DELETE PUT等)
+ curl -i -X GET  http://192.168.4.5			//正常
+ curl -i -X HEAD http://192.168.4.5			//正常
+   //curl命令选项说明：
+   //-i选项：访问服务器页面时，显示HTTP的头部信息
+   //-X选项：指定请求服务器的方法
+设置可以让Nginx拒绝非法的请求方法：
+
+ vim /usr/local/nginx/conf/nginx.conf
+http{
+       server {
+	             listen 80;
+#这里，!符号表示对正则取反，~符号是正则匹配符号
+#如果用户使用非GET或POST方法访问网站，则retrun返回444的错误信息
+              if ($request_method !~ ^(GET|POST)$ ) {
+                     return 444;
+ 修改服务器配置后，客户端使用不同请求方法测试：
+ curl -i -X GET  http://192.168.4.5			//正常
+ curl -i -X HEAD http://192.168.4.5			//报错
+
+4） 防止buffer溢出
+
+当客户端连接服务器时，服务器会启用各种缓存，用来存放连接的状态信息。
+
+如果攻击者发送大量的连接请求，而服务器不对缓存做限制的话，内存数据就有可能溢出（空间不足）
+
+修改Nginx配置文件，调整各种buffer参数，可以有效降低溢出风险。
+
+[root@proxy ~]# vim /usr/local/nginx/conf/nginx.conf
+http{
+client_body_buffer_size  1K;
+client_header_buffer_size 1k;
+client_max_body_size 1k;
+large_client_header_buffers 2 1k;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

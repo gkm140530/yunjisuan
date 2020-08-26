@@ -1,0 +1,89 @@
+1. 部署监控服务器Zabbix Server
+  yum -y install  net-snmp-devel  curl-devel libevent-devel
+ ./configure  --enable-server --enable-proxy --enable-agent --with-  mysql=/usr/bin/mysql_config  --with-net-snmp --with-libcurl
+
+2. 初始化Zabbix   创建数据库，上线Zabbix的Web页面
+ mysql> create database zabbix character set utf8;
+ //创建数据库，支持中文字符集
+ mysql> grant all on zabbix.* to zabbix@'localhost' identified by 'zabbix';
+ //创建可以访问数据库的账户与密码
+ cd lnmp_soft/zabbix-3.4.4/database/mysql/
+ mysql -uzabbix -pzabbix zabbix < schema.sql
+ mysql -uzabbix -pzabbix zabbix < images.sql
+ mysql -uzabbix -pzabbix zabbix < data.sql
+//刚刚创建是空数据库，zabbix源码包目录下，有提前准备好的数据
+
+3. 上线Zabbix的Web页面
+ cd lnmp_soft/zabbix-3.4.4/frontends/php/
+ cp -r * /usr/local/nginx/html/
+ chmod -R 777 /usr/local/nginx/html/*
+
+4. 修改Zabbix_server配置文件，设置数据库相关参数，启动Zabbix_server服务
+  vim /usr/local/etc/zabbix_server.conf
+ DBHost=localhost            //数据库主机，默认该行被注释
+ DBName=zabbix                    //设置数据库名称
+ DBUser=zabbix                //设置数据库账户
+ DBPassword=zabbix               //设置数据库密码，默认该行被注释
+ LogFile=/tmp/zabbix_server.log     //设置日志，仅查看以下即可
+ useradd -s /sbin/nologin zabbix     //不创建用户无法启动服务
+ zabbix_server                      //启动服务
+
+提示：如果是因为配置文件不对，导致服务无法启动时，不要重复执zabbix_server，一定要先使用killall zabbix_server关闭服务后，再重新启动一次。
+
+5. 修改Zabbix_agent配置文件，启动Zabbix_agent服务
+  vim /usr/local/etc/zabbix_agentd.conf
+ Server=127.0.0.1,192.168.2.5                    //允许哪些主机监控本机
+ ServerActive=127.0.0.1,192.168.2.5    //允许哪些主机通过主动模式监控本机
+ Hostname=zabbix_server                        //设置本机主机名
+ LogFile=/tmp/zabbix_server.log                    //设置日志文件
+ UnsafeUserParameters=1                        //是否允许自定义key
+
+  zabbix_agentd            //启动监控agent
+
+6. yum -y install  php-gd php-xml
+ yum install php-bcmath-5.4.16-42.el7.x86_64.rpm  
+ yum install php-mbstring-5.4.16-42.el7.x86_64.rpm
+ vim /etc/php.ini
+   date.timezone = Asia/Shanghai                //设置时区
+   max_execution_time = 300                    //最大执行时间，秒
+   post_max_size = 32M                        //POST数据最大容量
+   max_input_time = 300                        //服务器接收数据的时间限制
+   memory_limit = 128M                        //内存容量限制
+[root@zabbixserver ~]# systemctl restart php-fpm
+
+  firefox http://192.168.2.5/index.php
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,19 @@
+redis 常用命令
+
+set key名 key值       存储1个key值
+mset  key名列表       存储多个key值
+get key名             获取key值
+mget                  获取多个key值
+select 数据库编号     切换库
+keys *                显示所有key名
+keys a?               显示指定key名
+exists key名          测试key名是否存在
+ttl key名             查看key生存时间
+type key名            查看key类型
+
+move key名            移动key到指定库
+expire key名  数字    设置key有效时间
+del key名             删除指定的key
+flushall              删除所在库的所有key
+save                  保存所有key到硬盘
+shutdown              停止服务

@@ -1,0 +1,64 @@
+配置服务器硬件RAID
+
+1）RAID5
+
+服务器开机后根据提示快速按Ctrl+R组合键即可进入RAID配置界面
+进入RAID配置界面可以看到所有未配置的磁盘列表，主菜单包含：VD Mgmt、PD Mgmt、Ctrl Mgmt、Properties
+
+2) Ctrl+N进入下一页菜单，Ctrl+P进入上一页菜单，通过F2可以进入配置菜单
+
+3) 正式配置RAID之前可以使用Clear Config清空所有配置，然后选择Create New   VD  创建新的RADID磁盘阵列
+
+4) 在RAID Level中选择RAID级别，如RAID5（最少需要三块磁盘），并在右侧  Physical Disks中选择使用哪些物理磁盘组合RAID
+
+5) 点击OK确定后，可以在主菜单中看到刚刚创建的磁盘阵列，按F2选择Properties  可以配置该磁盘阵列的高级属性
+
+6) 点击Advanced高级
+
+7) 在高级属性中开启磁盘缓存，默认未unchanged，需要设置为enable，并可以设  置缓存策略：Write Through直写和Write Back回写，write through模式时数据  同时被写入缓存和磁盘，安全，但是写入速度慢，write back模式时数据先写入  缓存，再写入磁盘，写入速度快，但数据写入缓存时突发断电会导致数据丢失
+
+8) 创建完RADID后还需要初始化磁盘
+
+
+配置Hot Space磁盘
+
+热备磁盘是提前准备一块备用的磁盘（当前并不使用），当RAID磁盘阵列出现损坏后，系统自动使用该热备磁盘，替代损坏的磁盘，从而不需要人工插拔磁盘即可自动修复。
+
+1. 创建新的RAID磁盘阵列时，不要使用完所有磁盘，留一块磁盘做热备磁盘，点击  Advanced高级选项即可配置热备磁盘
+
+2. 勾选Configure Hot Space配置热备磁盘
+
+3. 在弹出的对话框中勾选需要的热备磁盘即可完成配置
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

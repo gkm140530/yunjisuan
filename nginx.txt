@@ -1,0 +1,159 @@
+1. 添加用户认证：
+vim /usr/local/nginx/conf/nginx.conf
+ server_name  localhost;
+ auth_basic "Input Password:";       //认证提示符信息
+ auth_basic_user_file  "/usr/local/nginx/pass";   //认证的密码文件
+
+yum -y install  httpd-tools
+htpasswd -c /usr/local/nginx/pass   tom        //创建密码文件
+
+2. 加密算法一般分为对称算法、非对称算法、信息摘要。
+
+  对称算法有：AES、DES，主要应用在单机数据加密。
+
+  非对称算法有：RSA、DSA，主要应用在网络数据加密。
+
+  信息摘要（hash值）：MD5、sha256，sha512 主要应用在数据完整性校验。
+
+3. 配置SSL加密虚拟主机
+ cd /usr/local/nginx/conf
+ openssl genrsa > cert.key                            //生成私钥
+ openssl req -new -x509 -key cert.key > cert.pem      //生成证书
+ 修改Nginx配置文件，设置加密网站的虚拟主机
+   去掉注释修改
+
+4. LNMP常见问题
+
+ Nginx的默认访问日志文件为/usr/local/nginx/logs/access.log
+
+ Nginx的默认错误日志文件为/usr/local/nginx/logs/error.log
+
+ PHP默认错误日志文件为/var/log/php-fpm/www-error.log
+
+ 如果动态网站访问失败，可用参考错误日志，查找错误信息。
+
+5. 地址重写格式【总结】
+
+ rewrite 旧地址 新地址 [选项];
+
+ last 不再读其他rewrite
+
+ break 不再读其他语句，结束请求
+
+ redirect 临时重定向
+
+ permanent 永久重定向
+
+6. 配置Nginx服务器，添加服务器池，实现反向代理功能
+  upstream webserver {
+     通过ip_hash设置调度规则为：相同客户端访问相同服务器
+                       ip_hash;
+                server 192.168.2.100:80;
+                server 192.168.2.200:80;
+
+       proxy_pass http://webserver;    调用集群
+
+7. 使用Nginx实现TCP/UDP调度器功能
+     Nginx编译安装时需要使用--with-stream，开ngx_stream_core_module模块
+
+8. 查看服务器状态信息
+   编译安装时使用--with-http_stub_status_module开启状态页面模块
+    curl  http://192.168.4.5/status
+    Active connections: 1 
+    server accepts handled requests
+    10 10 3 
+    Reading: 0 Writing: 1 Waiting: 0
+ Active connections：当前活动的连接数量。
+
+ Accepts：已经接受客户端的连接总数量。
+
+ Handled：已经处理客户端的连接总数量。
+
+（一般与accepts一致，除非服务器限制了连接数量）。
+
+ Requests：客户端发送的请求数量。
+
+ Reading：当前服务器正在读取客户端请求头的数量。
+
+ Writing：当前服务器正在写响应信息的数量。
+
+ Waiting：当前多少客户端在等待服务器的响应。
+
+9. 优化Nginx并发量
+ 修改Nginx配置文件，增加并发量
+ worker_processes（工作进程）  2;        //与CPU核心数量一致
+ worker_connections 65535;        //每个worker最大并发连接数
+   优化Linux内核参数（最大文件数量）
+ ulimit -a                        //查看所有属性值
+ vim /etc/security/limits.conf
+*               soft            nofile            100000
+*               hard            nofile            100000
+用户或组    硬限制或软限制    需要限制的项目      限制的值
+
+10. 优化Nginx数据包头缓存
+  http {
+client_header_buffer_size    1k;      //默认请求包头信息的缓存    
+large_client_header_buffers  4 4k;     //大请求包头部信息的缓存个数与容量
+
+11. 修改Nginx配置文件，定义对静态页面的缓存时间
+ location ~* \.(jpg|jpeg|gif|png|css|js|ico|xml)$ {
+ expires        30d;            //定义客户端缓存时间为30天
+
+12. memcached缓存服务器  port：11211
+ add name 0 180 10 //变量不存在则添加
+ set name 0 180 10 //添加或替换变量
+ replace name 0 180 10 //替换
+ get name //读取变量
+ delete name //删除变量
+ flush_all //清空所有
+提示：0表示不压缩，180为数据缓存时间，10为需要存储的数据字节数量。
+
+13. PHP实现session共享
+ yum -y install  php-pecl-memcache
+ vim  /etc/php-fpm.d/www.conf            //修改该配置文件的两个参数
+php_value[session.save_handler] = memcache
+php_value[session.save_path] = "tcp://192.168.2.5:11211"
+//定义Session信息存储在公共的memcached服务器上，主机参数中为memcache（没有d）
+//通过path参数定义公共的memcached服务器在哪（服务器的IP和端口）
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
